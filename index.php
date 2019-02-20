@@ -32,7 +32,7 @@
   // Create stream context with specified User-Agent in HTTP header:
   $context = stream_context_create(array('http' => array('header' => 'User-Agent: Mozilla compatible')));
 
-  // Create DOM object of URL with specified streatm context:
+  // Create DOM object of URL with specified stream context:
   $html = file_get_html($url, false, $context);
 
   // Loop through html and find specified content:
@@ -41,12 +41,12 @@
       $data[] = trim($e->innertext);
   }
 
-  // Split / Chunk array into specified parts:
+  // Split / Chunk array: 
   function array_split($array, $parts){
     return array_chunk($array, ceil(count($array) / $parts));
   }
 
-  // Individualizing array by column:
+  // Individualizing md-array by column:
   $freq = array_column(array_split($data, sizeof($data)/5), 0);
   $format = array_column(array_split($data, sizeof($data)/5), 2);
   $distance = array_column(array_split($data, sizeof($data)/5), 3);
@@ -78,12 +78,12 @@
  // Convert distances from string to float and remove ' miles' from each element:
  $floats = array_map('floatval', str_replace(' miles', "", $distance));
 
- // Combining to make multidimensional array of first location(key) and the count,
+ // Combining to make md-array of first location(key) and the count,
  $location_dups = array_combine($first, $count);
  // ... then get all distances of the duplicated values:
  $foo = array();
  foreach($location_dups as $first => $count){
-     $foo[] = array_slice($floats, $first, $count, true); // Set 'true' to keep original key.
+     $foo[] = array_slice($floats, $first, $count, true); // Set 'true' to keep original key index.
  }
 
  // Smallest: Contains the indexes of the smallest values of each frequency that has duplicates.
@@ -114,7 +114,7 @@
    return $value === "Hot AC" ? "Top-40" : $value;
  }, $format);
 
- // Change format 'Rhythmic CHR' to '80's to Today Hits':
+ // Change format 'Rhythmic CHR' to '80's to Today's Hits':
  $format = array_map(function($value) {
    return $value === "Rhythmic CHR" ? "80's to Today's Hits" : $value;
  }, $format);
@@ -137,12 +137,12 @@
   /*
     - Find the first occurance of 'AM' in frequency array.
     - Cannot use array_search since 'AM' isn't located at the beginning of string
-    - This function finds first occurnace of value in array (can even be a partial value)
   */
 
   // The Needle:
   $am = 'AM';
 
+  // Finds first occurance of the needle in the haystack (can even be partial): 
   function array_find($needle, array $haystack) {
     foreach ($haystack as $key => $value) {
       if (false !== stripos($value, $needle)) {
@@ -174,26 +174,27 @@
 
 	<title> Test Waves </title>
 
+	<!-- Responsive Scaling --> 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
+	<!-- Bootstrap --> 
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.0/css/bootstrap.min.css" integrity="sha384-PDle/QlgIONtM1aqA2Qemk5gPOE7wFq8+Em+G/hmo5Iq0CCmYZLv3fVRDJ4MMwEA" crossorigin="anonymous">
-
 	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.0/js/bootstrap.min.js" integrity="sha384-7aThvCh9TypR7fIc2HV4O/nFMVCBwyIUKL8XCtKE+8xgCgl/PQGuFsvShjr74PBp" crossorigin="anonymous"></script>
 
 	<style>
 
-	html{
-			margin-top:0;
-			padding-top:0;
-	}
+		html{
+				margin-top:0;
+				padding-top:0;
+		}
 
-	body{
-			margin-top:0;
-			padding-top:0;
+		body{
+				margin-top:0;
+				padding-top:0;
 
-	}
+		}
 
 		table.floatThead-table {
 				border-top: none;
@@ -258,22 +259,21 @@
 		<table class="table table-striped sticky-header">
 			<thead>
 				<tr>
-						<th colspan="3" style="text-align:center;">FM Stations </th>
+					<th colspan="3" style="text-align:center;">FM Stations </th>
 				</tr>
 			</thead>
-				<tbody>
-					<?php
-							foreach ($fm_combine as $fm_freq =>  $fm_form):
-									$fm_html .= "<tr>";
-									$fm_html .= "<td></td>";
-									$fm_html .= "<td>".$fm_freq."</td>";
-									$fm_html .= "<td>".$fm_form."</td>";
-									$fm_html .= "</tr>";
-							endforeach;
-							echo $fm_html;
-					?>
-				</table>
-				</tbody>
+			<tbody>
+				<?php
+					foreach ($fm_combine as $fm_freq =>  $fm_form):
+						$fm_html .= "<tr>";
+						$fm_html .= "<td></td>";
+						$fm_html .= "<td>".$fm_freq."</td>";
+						$fm_html .= "<td>".$fm_form."</td>";
+						$fm_html .= "</tr>";
+					endforeach;
+					echo $fm_html;
+				?>			
+			</tbody>
 		</table>
 		</div>
 
@@ -283,25 +283,24 @@
 		<table class="table table-striped sticky-header">
 			<thead>
 				<tr>
-						<th colspan="3" style="text-align:center;">AM Stations </th>
+					<th colspan="3" style="text-align:center;">AM Stations </th>
 				</tr>
 			</thead>
-				<tbody>
-					<?php
-							foreach ($am_combine as $am_freq =>  $am_form):
-									$am_html .= "<tr>";
-									$am_html .= "<td></td>";
-									$am_html .= "<td>".$am_freq."</td>";
-									$am_html .= "<td>".$am_form."</td>";
-									$am_html .= "</tr>";
-							endforeach;
-							echo $am_html;
-					?>
-				</table>
-				</tbody>
+			<tbody>
+				<?php
+					foreach ($am_combine as $am_freq =>  $am_form):
+						$am_html .= "<tr>";
+						$am_html .= "<td></td>";
+						$am_html .= "<td>".$am_freq."</td>";
+						$am_html .= "<td>".$am_form."</td>";
+						$am_html .= "</tr>";
+					endforeach;
+					echo $am_html;
+				?>
+			</tbody>
 		</table>
 		</div>
-</div>
+	</div>
 </div>
 </body>
 </html>
