@@ -1,0 +1,78 @@
+@import url(https://fonts.googleapis.com/css?family=Six+Caps);
+@import url('https://fonts.googleapis.com/css?family=Barlow+Semi+Condensed&display=swap');
+
+:root {
+    --font-six: 'Six Caps', sans-serif;
+    --font-barlow: 'Barlow Semi Condensed', sans-serif;
+}
+
+html{
+    margin-top:0;
+    padding-top:0;
+}
+
+body{
+    margin-top:0;
+    padding-top:0; 
+    background-color: #f7f7f7; 
+}
+
+.container-flex {
+    padding: 5vh 5vw 5vh 5vw; 
+}
+
+#loc-header {
+    text-align:center;
+    margin-top: 4vh; 
+    font-family: var(--font-barlow); 
+    text-transform: uppercase;
+    font-size: 7vh; 
+    letter-spacing: .055em;
+    font-weight: bold;  
+}
+
+@media (max-width: 650px) {
+    #loc-header {
+        font-size: 6vh; 
+    }
+}
+
+table.floatThead-table {
+    border-top: none;
+    border-bottom: none;
+}
+
+th {
+    position: sticky;
+    background-color: #006D75;
+    color: #f7f7f7; 
+    top: 0px;
+    font-family: var(--font-barlow); 
+    font-size: 7vh; 
+    text-transform: uppercase;
+    letter-spacing: .08em;   
+    font-weight: normal; 
+}
+
+.table{
+    text-overflow: ellipsis;
+    counter-reset: row-num;
+    white-space: nowrap !important;
+    overflow-x:auto;
+}
+
+.table th {
+    text-align: center;
+}
+
+.table tbody tr  {
+    counter-increment: row-num;
+}
+
+.table tr td:first-child::before {
+    content: counter(row-num) ".";
+}
+
+.table tr td:first-child {
+    text-align: center;
+}
