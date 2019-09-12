@@ -5,7 +5,7 @@
   $ip = preg_replace('#[^0-9.]#', '', getenv('REMOTE_ADDR'));
 
   // Using IP-API:
-  $api_url= "http://ip-api.com/json/?fields=query,zip,lat,lon,city";
+  $api_url= "http://ip-api.com/json/".$ip."?fields=query,zip,lat,lon,city";
 
   // Function to bypass HTTPS SSL verification:
   $arrContextOptions=array(
@@ -32,7 +32,7 @@
   // Create stream context with specified User-Agent in HTTP header:
   $context = stream_context_create(array('http' => array('header' => 'User-Agent: Mozilla compatible')));
 
-  // Create DOM object of URL with specified stream context:
+  // Create DOM object of URL with specified streatm context:
   $html = file_get_html($url, false, $context);
 
   // Loop through html and find specified content:
@@ -41,12 +41,12 @@
       $data[] = trim($e->innertext);
   }
 
-  // Split / Chunk array: 
+  // Split / Chunk array into specified parts:
   function array_split($array, $parts){
     return array_chunk($array, ceil(count($array) / $parts));
   }
 
-  // Individualizing md-array by column:
+  // Individualizing array by column:
   $freq = array_column(array_split($data, sizeof($data)/5), 0);
   $format = array_column(array_split($data, sizeof($data)/5), 2);
   $distance = array_column(array_split($data, sizeof($data)/5), 3);
@@ -78,12 +78,12 @@
  // Convert distances from string to float and remove ' miles' from each element:
  $floats = array_map('floatval', str_replace(' miles', "", $distance));
 
- // Combining to make md-array of first location(key) and the count,
+ // Combining to make multidimensional array of first location(key) and the count,
  $location_dups = array_combine($first, $count);
  // ... then get all distances of the duplicated values:
  $foo = array();
  foreach($location_dups as $first => $count){
-     $foo[] = array_slice($floats, $first, $count, true); // Set 'true' to keep original key index.
+     $foo[] = array_slice($floats, $first, $count, true); // Set 'true' to keep original key.
  }
 
  // Smallest: Contains the indexes of the smallest values of each frequency that has duplicates.
@@ -114,7 +114,7 @@
    return $value === "Hot AC" ? "Top-40" : $value;
  }, $format);
 
- // Change format 'Rhythmic CHR' to '80's to Today's Hits':
+ // Change format 'Rhythmic CHR' to '80's to Today Hits':
  $format = array_map(function($value) {
    return $value === "Rhythmic CHR" ? "80's to Today's Hits" : $value;
  }, $format);
@@ -137,12 +137,12 @@
   /*
     - Find the first occurance of 'AM' in frequency array.
     - Cannot use array_search since 'AM' isn't located at the beginning of string
+    - This function finds first occurnace of value in array (can even be a partial value)
   */
 
   // The Needle:
   $am = 'AM';
 
-  // Finds first occurance of the needle in the haystack (can even be partial): 
   function array_find($needle, array $haystack) {
     foreach ($haystack as $key => $value) {
       if (false !== stripos($value, $needle)) {
@@ -172,97 +172,41 @@
 <html>
 <head>
 
-	<title> Test Waves </title>
+	<title> Waves Away </title>
 
-	<!-- Responsive Scaling --> 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<!-- Bootstrap --> 
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.0/css/bootstrap.min.css" integrity="sha384-PDle/QlgIONtM1aqA2Qemk5gPOE7wFq8+Em+G/hmo5Iq0CCmYZLv3fVRDJ4MMwEA" crossorigin="anonymous">
-	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.0/js/bootstrap.min.js" integrity="sha384-7aThvCh9TypR7fIc2HV4O/nFMVCBwyIUKL8XCtKE+8xgCgl/PQGuFsvShjr74PBp" crossorigin="anonymous"></script>
+	<!-- Bootstrap 4 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
-	<style>
-
-		html{
-				margin-top:0;
-				padding-top:0;
-		}
-
-		body{
-				margin-top:0;
-				padding-top:0;
-
-		}
-
-		table.floatThead-table {
-				border-top: none;
-				border-bottom: none;
-				background-color: gray;
-		}
-
-		th {
-			position: sticky;
-			background: lightgray;
-			top: 0px;
-		}
-
-		.table{
-			text-overflow: ellipsis;
-			counter-reset: row-num;
-			white-space: nowrap !important;
-			overflow-x:auto;
-		}
-
-		.table th {
-			text-align: center;
-		}
-
-		.table tbody tr  {
-		counter-increment: row-num;
-		}
-
-		.table tr td:first-child::before {
-		content: counter(row-num) ".";
-		}
-
-		.table tr td:first-child {
-		text-align: center;
-		}
-
-	</style>
+    <!-- JQuery -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	
+	<!-- External CSS --> 
+	<link rel='stylesheet' href='css/style.css'>
 
 </head>
 <body>
 
 <!-- Begin page content -->
-<div class="container">
-
+<div class="container-flex">
 	<div class="page-header">
-		<h3 style="text-align:center;">
-			<?php
-				// Using regex to see if last letter of the city ends with 's'.
-				if (preg_match("/s$/", $city)) {
-					echo  $city . "' Radio Stations";
-				} else {
-					echo $city . "'s Radio Stations";
-				}
-			?>
-		</h3>
+		<p id="loc-header"></p> 
 	</div>
 
 	<br>
 
 	<div class="row">
 		<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
-		<table class="table table-striped sticky-header">
-			<thead>
-				<tr>
-					<th colspan="3" style="text-align:center;">FM Stations </th>
-				</tr>
-			</thead>
-			<tbody>
+			<table class="table table-striped sticky-header">
+				<thead>
+					<tr>
+						<th colspan="3" style="text-align:center;">FM Stations </th>
+					</tr>
+				</thead>
+				<tbody>
 				<?php
 					foreach ($fm_combine as $fm_freq =>  $fm_form):
 						$fm_html .= "<tr>";
@@ -272,21 +216,21 @@
 						$fm_html .= "</tr>";
 					endforeach;
 					echo $fm_html;
-				?>			
-			</tbody>
-		</table>
-		</div>
+				?>
+				</tbody>
+			</table>
+		</div> <!-- Close Col --> 
 
 		<br> <br> <br>
 
 		<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
-		<table class="table table-striped sticky-header">
-			<thead>
-				<tr>
-					<th colspan="3" style="text-align:center;">AM Stations </th>
-				</tr>
-			</thead>
-			<tbody>
+			<table class="table table-striped sticky-header">
+				<thead>
+					<tr>
+							<th colspan="3" style="text-align:center;">AM Stations </th>
+					</tr>
+				</thead>
+				<tbody>
 				<?php
 					foreach ($am_combine as $am_freq =>  $am_form):
 						$am_html .= "<tr>";
@@ -297,11 +241,62 @@
 					endforeach;
 					echo $am_html;
 				?>
-			</tbody>
-		</table>
-		</div>
-	</div>
-</div>
+				</tbody>
+			</table>
+		</div> <!-- Close Col --> 
+	</div> <!-- Close Row --> 
+</div> <!-- Close Container --> 
+
+<!-- Script for Google Maps: This provides a much more accurate city / neightborhood location --> 
+<script>
+	var x = document.getElementById("loc-header");
+
+	if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(locateSuccess, locateFail);
+	}
+
+	function locateSuccess(loc) {
+		var latitude = loc.coords.latitude;
+		var longitude = loc.coords.longitude;
+		var url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latitude +',' + longitude + '&key=MyAPIKey';
+
+		$.getJSON(url, function(data) {
+
+			// Processing fetched data: 
+			var data = data.plus_code.compound_code; // "ABCD+## Some City, State, USA"
+			var city_state = data.substr(data.indexOf(' ')+1); // Some City, State, USA"
+			var city = city_state.substr(0,city_state.indexOf(',')); // Some City"
+			
+			// Apostrophy placement: 
+			if (city.endsWith("s")) {
+				x.innerHTML = city + "'" + " Radio Stations";  
+			} else {
+				x.innerHTML = city + "'s" + " Radio Stations";  
+			}
+
+			console.log(data); 
+		})
+	}
+
+	function locateFail(geoPositionError) {
+		switch (geoPositionError.code) {
+			case 0: // UNKNOWN_ERROR
+				alert('An unknown error occurred, sorry');
+				break;
+			case 1: // PERMISSION_DENIED
+				alert('Permission to use Geolocation was denied');
+				break;
+			case 2: // POSITION_UNAVAILABLE
+				alert('Couldn\'t find you...');
+				break;
+			case 3: // TIMEOUT
+				alert('The Geolocation request took too long and timed out');
+				break;
+		default:
+		}
+	}
+</script> 
+
 </body>
 </html>
 
