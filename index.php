@@ -7,7 +7,7 @@
   // Using IP-API:
   $api_url= "http://ip-api.com/json/".$ip."?fields=query,zip,lat,lon,city";
 
-  // Function to bypass HTTPS SSL verification:
+  // Bypass HTTPS SSL verification:
   $arrContextOptions=array(
       'ssl' => array(
           'verify_peer'=> true,
