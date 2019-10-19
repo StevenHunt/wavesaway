@@ -1,13 +1,13 @@
 <?php
   include_once('html_dom.php');
 
-  // Obtaining user's IP address
+  // Obtaining user's IP address (using regex to search the data)
   $ip = preg_replace('#[^0-9.]#', '', getenv('REMOTE_ADDR'));
 
   // Using IP-API:
   $api_url= "http://ip-api.com/json/".$ip."?fields=query,zip,lat,lon,city";
 
-  // Bypass HTTPS SSL verification:
+  // I had an issue accessing ip-api, due to the SSL certificate, so I had to manually provide the browser user-agent as a workdaround. 
   $arrContextOptions=array(
       'ssl' => array(
           'verify_peer'=> true,
@@ -18,10 +18,10 @@
       ),
   );
 
-  // Open / Read entire URL into string:
+  // Open / Read entire URL into string, passing the additional headers: (path, include_path, context)
   $json = file_get_contents($api_url, false, stream_context_create($arrContextOptions));
 
-  // Decode JSON string:
+  // Decode JSON string (convert JSON to PHP):
   $data = json_decode($json);
   $zip = $data->zip;
   $city = $data->city;
@@ -32,71 +32,84 @@
   // Create stream context with specified User-Agent in HTTP header:
   $context = stream_context_create(array('http' => array('header' => 'User-Agent: Mozilla compatible')));
 
-  // Create DOM object of URL with specified streatm context:
+  // Create DOM object of URL with specified stream context:
   $html = file_get_html($url, false, $context);
 
-  // Loop through html and find specified content:
+  // Loop through html and find all specified data (in <td> tag) and trimming white spaces: 
   $data = array();
   foreach($html->find('table tr td') as $e) {
       $data[] = trim($e->innertext);
   }
 
-  // Split / Chunk array into specified parts:
+  // Function to chunk / split array into specified parts:
   function array_split($array, $parts){
     return array_chunk($array, ceil(count($array) / $parts));
   }
 
-  // Individualizing array by column:
-  $freq = array_column(array_split($data, sizeof($data)/5), 0);
-  $format = array_column(array_split($data, sizeof($data)/5), 2);
-  $distance = array_column(array_split($data, sizeof($data)/5), 3);
+  // Individualizing array by columns: 
+  $freq = array_column(array_split($data, sizeof($data)/5), 0); # Column 0 is the frequency
+  $format = array_column(array_split($data, sizeof($data)/5), 2); # Column 2 is the format
+  $distance = array_column(array_split($data, sizeof($data)/5), 3); # Column 3 is the distance from zip
 
- // Remove duplicate frequencies, based on broadcast distance from user ==============================
+ // REMOVE DUPLICATE FREQUENCIES, BASED ON BROADCAST DISTANCE FROM USER ==============================
  // Loop through array that contains count of all frequencies, put frequences with
  // value > 1 into new array, essentially returning all requencies with duplicate values:
  $duplicates = array();
+# Loop through an array that contains a count of all the frequencies ------ 
  foreach (array_count_values($freq) as $key => $var) {
+   # If a frequency has multiple entries (>1), put that key into an array 'duplicates'
    if ($var > 1) {
      $duplicates[] = $key;
    }
  };
 
- // Find key values of duplicate frequencies:
+ // Find key values of duplicate frequencies
  $dup_keys = array();
+ # Loop through all of the duplicate values: 
  for ($i = 0; $i < count($duplicates); $i++) {
+   # Put all of the duplicate key values into a new array called 'dup_keys'
    $dup_keys[] = array_keys($freq, $duplicates[$i]);
  }
 
- // Get first key location and count of each duplicate frequency:
+ // Get first key location and count of each duplicate frequency
  $first = array();
  $count = array();
  foreach ($dup_keys as $f){
-   $first[] = $f[0];
-   $count[] = count($f);
+   $first[] = $f[0]; // First key location of duplicate freq 
+   $count[] = count($f); // How many times does the duplicate freq appear
  }
 
- // Convert distances from string to float and remove ' miles' from each element:
- $floats = array_map('floatval', str_replace(' miles', "", $distance));
+ // Using array_map (passes each val of an array to a function), convert distances array from string to float via 'floatval', and
+ // remove 'miles' from each element via str_replace, essentially returning an array that just has the distances of each frequency
+ $distance_fl = array_map('floatval', str_replace(' miles', "", $distance));
 
- // Combining to make multidimensional array of first location(key) and the count,
- $location_dups = array_combine($first, $count);
- // ... then get all distances of the duplicated values:
- $foo = array();
- foreach($location_dups as $first => $count){
-     $foo[] = array_slice($floats, $first, $count, true); // Set 'true' to keep original key.
+ // $loc_count_dups: Contains the location and count of all the duplicate values by combining $first and $count, 
+ // to make multidimensional array.
+ $loc_count_dups = array_combine($first, $count);
+
+ 
+ $dup_dist = array();
+ // Loop through the array containing the locations (first and count) of all duplicates: 
+ foreach($loc_count_dups as $first => $count){
+     // and return an new array that now only contains the distances of each of the duplicate value. 
+     $dup_dist[] = array_slice($distance_fl, $first, $count, true); // Set 'true' to keep original key.
+ }
+ 
+// Return array containing the smallest 
+ $small_indx = array();
+ // Loop through array (containing freq dist of each duplicate value), and return the key that has the smallest value of each duplicate. 
+ foreach($dup_dist as $key => $val) {
+     $small_indx[] = array_keys($val, min($val));
  }
 
  // Smallest: Contains the indexes of the smallest values of each frequency that has duplicates.
- $small_indx = array();
- foreach($foo as $key => $val) {
-     $small_indx[] = array_keys($val, min($val));
- }
  $smallest =  array_column($small_indx,0);
 
- // List of indexes that need to be deleted from $freq and $format:
+ // Comparing the new array ($smallest) containing the keys of the smallest values of the duplicate values, against the 
+ // complete list of duplicate keys and returning the difference (which will result in the ones that need deleting). 
  $delete_indexes = array_diff(call_user_func_array('array_merge', $dup_keys), $smallest);
 
- // Remove (unset) furthest distance duplicates from $freq and $format arrays:
+ // Removing (unset) furthest distance duplicates from $freq and $format arrays:
  foreach($delete_indexes as $k => $v){
    unset($freq[$v]);
    unset($format[$v]);
@@ -130,7 +143,8 @@
  }, $format);
 
 // ===============================================================================================
-
+  
+  // Return only the values (duplicates now removed)
   $form_arr = array_values($format);
   $freq_arr = array_values($freq);
 
@@ -154,16 +168,19 @@
 
   // First index where AM is found:
   $key = array_find($am, $freq_arr);
-
+ 
+  // Size of freq and form arrays: 
   $freq_size = sizeof($freq_arr);
   $form_size = sizeof($form_arr);
 
+  // Slice arrays where AM frequencies begin: 
   $fm_freq = array_slice($freq_arr, 0, $key);
   $am_freq = array_slice($freq_arr, $key, $freq_size);
 
   $fm_form = array_slice($form_arr, 0, $key);
   $am_form = array_slice($form_arr, $key, $form_size);
 
+  // Combine the two AM and FM freq w/ their corresponding formats:  
   $fm_combine = array_combine($fm_freq, $fm_form);
   $am_combine = array_combine($am_freq, $am_form);
 
@@ -208,6 +225,7 @@
 				</thead>
 				<tbody>
 				<?php
+					// Loop through FM stations, printing their freq and formats
 					foreach ($fm_combine as $fm_freq =>  $fm_form):
 						$fm_html .= "<tr>";
 						$fm_html .= "<td></td>";
@@ -232,6 +250,7 @@
 				</thead>
 				<tbody>
 				<?php
+					// Loop through AM stations, printing their freq and formats
 					foreach ($am_combine as $am_freq =>  $am_form):
 						$am_html .= "<tr>";
 						$am_html .= "<td></td>";
@@ -247,7 +266,7 @@
 	</div> <!-- Close Row --> 
 </div> <!-- Close Container --> 
 
-<!-- Script for Google Maps: This provides a much more accurate city / neightborhood location --> 
+<!-- Script for Google Maps: This provides a much more accurate city / neighborhood location --> 
 <script>
 	var x = document.getElementById("loc-header");
 
